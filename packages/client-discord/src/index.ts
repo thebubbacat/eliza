@@ -72,6 +72,7 @@ export class DiscordClient extends EventEmitter {
         // this.runtime.registerAction(dcaAction);
         this.runtime.registerAction(priceAction);
 
+
         this.runtime.providers.push(channelStateProvider);
         this.runtime.providers.push(voiceStateProvider);
 
