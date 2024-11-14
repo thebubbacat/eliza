@@ -17,6 +17,8 @@ import {
 import { bootstrapPlugin } from "@ai16z/plugin-bootstrap/src/index.ts";
 import { solanaPlugin } from "@ai16z/plugin-solana/src/index.ts";
 import { nodePlugin } from "@ai16z/plugin-node/src/index.ts";
+import { bubbacatPlugin } from "@ai16z/plugin-bubbacat/src/index.ts";
+
 import Database from "better-sqlite3";
 import fs from "fs";
 import readline from "readline";
@@ -225,7 +227,7 @@ export async function createAgent(
         modelProvider: character.modelProvider,
         evaluators: [],
         character,
-        plugins: [bootstrapPlugin, nodePlugin].filter(Boolean),
+        plugins: [bootstrapPlugin, nodePlugin, bubbacatPlugin].filter(Boolean),
         providers: [],
         actions: [],
         services: [],

@@ -1,7 +1,7 @@
 {
     "name": "bubbacat",
     "plugins": [],
-    "clients": ["discord"],
+    "clients": ["discord", "telegram"],
     "modelProvider": "anthropic",
     "settings": {
         "voice": {

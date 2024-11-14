@@ -256,11 +256,7 @@ const summarizeAction = {
         const model = models[runtime.character.settings.model];
         const chunkSize = model.settings.maxContextLength - 1000;
 
-        const chunks = await splitChunks(
-            formattedMemories,
-            chunkSize,
-            0
-        );
+        const chunks = await splitChunks(formattedMemories, chunkSize, 0);
 
         const datestr = new Date().toUTCString().replace(/:/g, "-");
 

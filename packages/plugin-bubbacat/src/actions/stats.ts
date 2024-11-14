@@ -1,7 +1,6 @@
 import { Action, ActionExample, Content } from "@ai16z/eliza/src/types.ts";
-import { getDexscreenerData } from "../utils/get-dexscreener-data.ts";
 import { abbreviateNumber } from "../utils/abbreviate.ts";
-
+import { getDexscreenerData } from "../utils/get-dexscreener-data.ts";
 const statsAction: Action = {
     name: "GET_STATS",
     similes: ["CHECK_STATS", "FETCH_STATS", "TOKEN_STATS"],
