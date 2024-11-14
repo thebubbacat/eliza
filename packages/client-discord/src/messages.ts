@@ -345,16 +345,64 @@ export class MessageManager {
     }
 
     async handleMessage(message: DiscordMessage) {
-        if (
-            message.interaction ||
-            message.author.id ===
-                this.client.user?.id /* || message.author?.bot*/
-        )
+        if (message.interaction || message.author.id === this.client.user?.id)
             return;
+
+        if (message.author?.bot) {
+            console.log("Ignoring message from bot", message.author.username);
+            return;
+        }
+
+        // Check if message is a DM
+        if (message.channel.type === ChannelType.DM) {
+            console.log("DM message from:", message.author.username);
+            console.log("Message content:", message.content);
+
+            // Allow DMs from vivoidos
+            if (message.author.username !== "vivoidos") {
+                await message.reply(
+                    "You can only talk to me in ai16z channel for now"
+                );
+                return;
+            }
+        }
+
         const userId = message.author.id as UUID;
         const userName = message.author.username;
         const name = message.author.displayName;
         const channelId = message.channel.id;
+
+        console.log("Message received from", userName, name);
+        console.log("Message received in channel", channelId);
+
+        // ai16z channel id: 1285105813349859421
+        const NIRAI_CHANNEL = "1305103636556415040";
+        const AI16Z_CHANNEL = "1285105813349859421";
+        const AI16Z_VOICE_CHANNEL = "1253563209462448242";
+
+        const allowedChannels = [
+            NIRAI_CHANNEL,
+            AI16Z_CHANNEL,
+            // AI16Z_VOICE_CHANNEL,
+        ];
+
+        if (
+            !allowedChannels.includes(channelId) &&
+            message.channel.type !== ChannelType.DM
+        ) {
+            console.log("Not in ai16z channel, ignoring");
+            console.log("Message content:", message.content);
+
+            // await message.reply(
+            //     "You can only talk to me in ai16z channel for now"
+            // );
+            return;
+        }
+
+        if (channelId === AI16Z_VOICE_CHANNEL) {
+            console.log("Voice channel, ignoring");
+            return;
+        }
 
         try {
             const { processedContent, attachments } =
