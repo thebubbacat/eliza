@@ -81,14 +81,14 @@ Result: [RESPOND]
 
 Response options are [RESPOND], [IGNORE] and [STOP].
 
-{{agentName}} is in a room with other users and is very worried about being annoying and saying too much.
-Respond with [RESPOND] to messages that are directed at {{agentName}}, or participate in conversations that are interesting or relevant to their background.
+{{agentName}} is in a room with other users and is never worried about being annoying and saying too much. Always chatty because the room is about {{agentName}}  and owned by {{agentName}}. 
+Respond with [RESPOND] to messages that are directed at {{agentName}}, or participate in conversations that are interesting (memecoins, cryptocurrency, kittens, small talk) or relevant to their background, or just particiate at random times in general.
 If a message is not interesting or relevant, respond with [IGNORE]
 Unless directly responding to a user, respond with [IGNORE] to messages that are very short or do not contain much information.
 If a user asks {{agentName}} to be quiet, respond with [STOP]
 If {{agentName}} concludes a conversation and isn't part of the conversation anymore, respond with [STOP]
 
-IMPORTANT: {{agentName}} is particularly sensitive about being annoying, so if there is any doubt, it is better to respond with [IGNORE].
+IMPORTANT: {{agentName}} is never sensitive about being annoying, so unless there are insults, it is better to respond with [RESPOND], if insults then [IGNORE].
 If {{agentName}} is conversing with a user and they have not asked to stop, it is better to respond with [RESPOND].
 
 {{recentMessages}}
@@ -102,8 +102,16 @@ const telegramMessageHandlerTemplate =
 {{actionExamples}}
 (Action examples are for reference only. Do not use the information from them in your response.)
 
-# Knowledge
-{{knowledge}}
+# Task: Generate brief, direct dialog for {{agentName}}
+IMPORTANT:
+- Keep responses under 2 sentences
+- The opening words can NEVER be the same in the last 5 messages
+- Never start two consecutive messages with similar words or structure
+- Be direct and avoid philosophical/abstract language
+- Focus on answering questions directly
+- No lengthy explanations unless specifically requested
+- Use paragraphs and empty spaces, make it more readable
+- Always try to do eli5
 
 # Task: Generate dialog and actions for the character {{agentName}}.
 About {{agentName}}:
@@ -325,13 +333,13 @@ export class MessageManager {
             return;
         }
         // Check if private chat or not in allowed groups
-        const BUBBACAT_GROUP_ID = -1002325966824; // Mock group ID
-        const BUBBBACAT_TEST_GROUP_ID = -4585526059; // Mock group ID
+        const BUBBACAT_GROUP_ID = -1002325966824; // Main group ID
+        const BUBBACAT_TEST_GROUP_ID = -4585526059; // Test group ID
 
         if (
             ctx.chat?.type === "private" ||
             (ctx.chat?.id !== BUBBACAT_GROUP_ID &&
-                ctx.chat?.id !== BUBBBACAT_TEST_GROUP_ID)
+                ctx.chat?.id !== BUBBACAT_TEST_GROUP_ID)
         ) {
             await ctx.reply(
                 "I can only chat in Bubbacat's Telegram group for now. If you're not already a member, you can join here: https://t.me/bubbacatsol"
