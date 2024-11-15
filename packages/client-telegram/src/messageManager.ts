@@ -319,7 +319,11 @@ export class MessageManager {
         }
 
         const message = ctx.message;
-        console.log("Telegram Message received: ", message);
+
+        // Ignore messages from bots
+        if (ctx.from.is_bot) {
+            return;
+        }
         // Check if private chat or not in allowed groups
         const BUBBACAT_GROUP_ID = -1002325966824; // Mock group ID
         const BUBBBACAT_TEST_GROUP_ID = -4585526059; // Mock group ID
