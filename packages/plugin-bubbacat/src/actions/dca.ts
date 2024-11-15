@@ -68,6 +68,7 @@ const dcaAction: Action = {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
+                        "x-api-key": `${process.env.CALLISTO_API_KEY}`,
                     },
                 }
             );

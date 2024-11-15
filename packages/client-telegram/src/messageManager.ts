@@ -202,7 +202,7 @@ export class MessageManager {
 
         // Respond to private chats
         if (message.chat.type === "private") {
-            return true;
+            return false;
         }
 
         // Respond to images in group chats
@@ -318,12 +318,22 @@ export class MessageManager {
             return; // Exit if no message or sender info
         }
 
-        // TODO: Handle commands?
-        // if (ctx.message.text?.startsWith("/")) {
-        //     return;
-        // }
-
         const message = ctx.message;
+        console.log("Telegram Message received: ", message);
+        // Check if private chat or not in allowed groups
+        const BUBBACAT_GROUP_ID = -1002325966824; // Mock group ID
+        const BUBBBACAT_TEST_GROUP_ID = -4585526059; // Mock group ID
+
+        if (
+            ctx.chat?.type === "private" ||
+            (ctx.chat?.id !== BUBBACAT_GROUP_ID &&
+                ctx.chat?.id !== BUBBBACAT_TEST_GROUP_ID)
+        ) {
+            await ctx.reply(
+                "I can only chat in Bubbacat's Telegram group for now. If you're not already a member, you can join here: https://t.me/bubbacatsol"
+            );
+            return;
+        }
 
         try {
             // Convert IDs to UUIDs
