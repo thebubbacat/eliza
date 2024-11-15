@@ -227,7 +227,11 @@ export async function createAgent(
         modelProvider: character.modelProvider,
         evaluators: [],
         character,
-        plugins: [bootstrapPlugin, nodePlugin, bubbacatPlugin].filter(Boolean),
+        plugins: [
+            bootstrapPlugin,
+            // nodePlugin,
+            bubbacatPlugin,
+        ].filter(Boolean),
         providers: [],
         actions: [],
         services: [],
