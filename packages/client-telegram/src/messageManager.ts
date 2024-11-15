@@ -328,18 +328,35 @@ export class MessageManager {
 
         const message = ctx.message;
 
-        // Ignore messages from bots
-        if (ctx.from.is_bot) {
+        if (
+            this.runtime.character.clientConfig?.telegram
+                ?.shouldIgnoreBotMessages &&
+            ctx.from.is_bot
+        ) {
             return;
         }
+        if (
+            this.runtime.character.clientConfig?.telegram
+                ?.shouldIgnoreDirectMessages &&
+            ctx.chat?.type === "private"
+        ) {
+            console.log(
+                "Telegram: Ignoring direct message from",
+                ctx.from.username
+            );
+            await ctx.reply(
+                "I can only chat in Bubbacat's Telegram group for now. If you're not already a member, you can join here: https://t.me/bubbacatsol"
+            );
+            return;
+        }
+
         // Check if private chat or not in allowed groups
         const BUBBACAT_GROUP_ID = -1002325966824; // Main group ID
         const BUBBACAT_TEST_GROUP_ID = -4585526059; // Test group ID
 
         if (
-            ctx.chat?.type === "private" ||
-            (ctx.chat?.id !== BUBBACAT_GROUP_ID &&
-                ctx.chat?.id !== BUBBACAT_TEST_GROUP_ID)
+            ctx.chat?.id !== BUBBACAT_GROUP_ID &&
+            ctx.chat?.id !== BUBBACAT_TEST_GROUP_ID
         ) {
             await ctx.reply(
                 "I can only chat in Bubbacat's Telegram group for now. If you're not already a member, you can join here: https://t.me/bubbacatsol"

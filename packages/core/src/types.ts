@@ -357,6 +357,12 @@ export type Character = {
         chat: string[];
         post: string[];
     };
+    clientConfig?: {
+        [key: string]: {
+            shouldIgnoreBotMessages?: boolean;
+            shouldIgnoreDirectMessages?: boolean;
+        };
+    };
 };
 
 export interface IDatabaseAdapter {

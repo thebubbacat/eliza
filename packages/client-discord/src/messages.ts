@@ -346,21 +346,26 @@ export class MessageManager {
     }
 
     async handleMessage(message: DiscordMessage) {
-        if (message.interaction || message.author.id === this.client.user?.id)
-            if (
-                message.interaction ||
-                message.author.id ===
-                    this.client.user?.id /* || message.author?.bot*/
-            )
-                return;
+        if (
+            message.interaction ||
+            message.author.id ===
+                this.client.user?.id /* || message.author?.bot*/
+        )
+            return;
 
-        if (message.author?.bot) {
-            console.log("Ignoring message from bot", message.author.username);
+        if (
+            this.runtime.character.clientConfig?.discord
+                ?.shouldIgnoreBotMessages &&
+            message.author?.bot
+        ) {
             return;
         }
 
-        // Check if message is a DM
-        if (message.channel.type === ChannelType.DM) {
+        if (
+            this.runtime.character.clientConfig?.discord
+                ?.shouldIgnoreDirectMessages &&
+            message.channel.type === ChannelType.DM
+        ) {
             console.log("DM message from:", message.author.username);
             console.log("Message content:", message.content);
 
