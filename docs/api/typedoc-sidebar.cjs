@@ -35,6 +35,11 @@ const typedocSidebar = {
       type: "category",
       label: "Interfaces",
       items: [
+        {
+          type: "doc",
+          id: "interfaces/GenerationOptions",
+          label: "GenerationOptions",
+        },
         { type: "doc", id: "interfaces/Content", label: "Content" },
         { type: "doc", id: "interfaces/ActionExample", label: "ActionExample" },
         {
@@ -149,6 +154,23 @@ const typedocSidebar = {
           id: "variables/embeddingZeroVector",
           label: "embeddingZeroVector",
         },
+        { type: "doc", id: "variables/models", label: "models" },
+        {
+          type: "doc",
+          id: "variables/messageCompletionFooter",
+          label: "messageCompletionFooter",
+        },
+        {
+          type: "doc",
+          id: "variables/shouldRespondFooter",
+          label: "shouldRespondFooter",
+        },
+        { type: "doc", id: "variables/booleanFooter", label: "booleanFooter" },
+        {
+          type: "doc",
+          id: "variables/stringArrayFooter",
+          label: "stringArrayFooter",
+        },
         { type: "doc", id: "variables/settings", label: "settings" },
       ],
     },
@@ -238,6 +260,16 @@ const typedocSidebar = {
           id: "functions/generateCaption",
           label: "generateCaption",
         },
+        {
+          type: "doc",
+          id: "functions/generateObjectV2",
+          label: "generateObjectV2",
+        },
+        {
+          type: "doc",
+          id: "functions/handleProvider",
+          label: "handleProvider",
+        },
         { type: "doc", id: "functions/getGoals", label: "getGoals" },
         {
           type: "doc",
@@ -264,6 +296,26 @@ const typedocSidebar = {
         },
         { type: "doc", id: "functions/getModel", label: "getModel" },
         { type: "doc", id: "functions/getEndpoint", label: "getEndpoint" },
+        {
+          type: "doc",
+          id: "functions/parseShouldRespondFromText",
+          label: "parseShouldRespondFromText",
+        },
+        {
+          type: "doc",
+          id: "functions/parseBooleanFromText",
+          label: "parseBooleanFromText",
+        },
+        {
+          type: "doc",
+          id: "functions/parseJsonArrayFromText",
+          label: "parseJsonArrayFromText",
+        },
+        {
+          type: "doc",
+          id: "functions/parseJSONObjectFromText",
+          label: "parseJSONObjectFromText",
+        },
         { type: "doc", id: "functions/formatPosts", label: "formatPosts" },
         { type: "doc", id: "functions/getProviders", label: "getProviders" },
         {
@@ -292,6 +344,7 @@ const typedocSidebar = {
           label: "findNearestEnvFile",
         },
         { type: "doc", id: "functions/loadEnvConfig", label: "loadEnvConfig" },
+        { type: "doc", id: "functions/stringToUuid", label: "stringToUuid" },
       ],
     },
   ],

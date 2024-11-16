@@ -1,8 +1,8 @@
 import { Message } from "@telegraf/types";
 import { Context, Telegraf } from "telegraf";
 
-import { composeContext } from "@ai16z/eliza/src/context.ts";
-import { embeddingZeroVector } from "@ai16z/eliza/src/memory.ts";
+import { composeContext } from "@ai16z/eliza";
+import { embeddingZeroVector } from "@ai16z/eliza";
 import {
     Content,
     HandlerCallback,
@@ -12,71 +12,62 @@ import {
     ModelClass,
     State,
     UUID,
-} from "@ai16z/eliza/src/types.ts";
-import { stringToUuid } from "@ai16z/eliza/src/uuid.ts";
+} from "@ai16z/eliza";
+import { stringToUuid } from "@ai16z/eliza";
 
-import {
-    generateMessageResponse,
-    generateShouldRespond,
-} from "@ai16z/eliza/src/generation.ts";
-import {
-    messageCompletionFooter,
-    shouldRespondFooter,
-} from "@ai16z/eliza/src/parsing.ts";
-import ImageDescriptionService from "@ai16z/plugin-node/src/services/image.ts";
+import { generateMessageResponse, generateShouldRespond } from "@ai16z/eliza";
+import { messageCompletionFooter, shouldRespondFooter } from "@ai16z/eliza";
+import { ImageDescriptionService } from "@ai16z/plugin-node";
 
 const MAX_MESSAGE_LENGTH = 4096; // Telegram's max message length
 
 const telegramShouldRespondTemplate =
-    `# Task: Decide if {{agentName}} should respond.
-About {{agentName}}:
+    `# About {{agentName}}:
 {{bio}}
 
-# INSTRUCTIONS: Determine if {{agentName}} should respond to the message and participate in the conversation. Do not comment. Just respond with "RESPOND" or "IGNORE" or "STOP".
-
 # RESPONSE EXAMPLES
-<user 1>: I just saw a really great movie
-<user 2>: Oh? Which movie?
+{{user1}}: I just saw a really great movie
+{{user2}}: Oh? Which movie?
 Result: [IGNORE]
 
 {{agentName}}: Oh, this is my favorite scene
-<user 1>: sick
-<user 2>: wait, why is it your favorite scene
+{{user1}}: sick
+{{user2}}: wait, why is it your favorite scene
 Result: [RESPOND]
 
-<user>: stfu bot
+{{user1}}: stfu bot
 Result: [STOP]
 
-<user>: Hey {{agent}}, can you help me with something
+{{user1}}: Hey {{agent}}, can you help me with something
 Result: [RESPOND]
 
-<user>: {{agentName}} stfu plz
+{{user1}}: {{agentName}} stfu plz
 Result: [STOP]
 
-<user>: i need help
+{{user1}}: i need help
 {{agentName}}: how can I help you?
-<user>: no. i need help from someone else
+{{user1}}: no. i need help from someone else
 Result: [IGNORE]
 
-<user>: Hey {{agent}}, can I ask you a question
+{{user1}}: Hey {{agent}}, can I ask you a question
 {{agentName}}: Sure, what is it
-<user>: can you ask claude to create a basic react module that demonstrates a counter
+{{user1}}: can you ask claude to create a basic react module that demonstrates a counter
 Result: [RESPOND]
 
-<user>: {{agentName}} can you tell me a story
-<user>: {about a girl named elara
-{{agentName}}: Sure.
-{{agentName}}: Once upon a time, in a quaint little village, there was a curious girl named Elara.
-{{agentName}}: Elara was known for her adventurous spirit and her knack for finding beauty in the mundane.
-<user>: I'm loving it, keep going
+{{user1}}: {{agentName}} can you tell me a story
+{{agentName}}: uhhh...
+{{user1}}: please do it
+{{agentName}}: okay
+{{agentName}}: once upon a time, in a quaint little village, there was a curious girl named elara
+{{user1}}: I'm loving it, keep going
 Result: [RESPOND]
 
-<user>: {{agentName}} stop responding plz
+{{user1}}: {{agentName}} stop responding plz
 Result: [STOP]
 
-<user>: okay, i want to test something. can you say marco?
+{{user1}}: okay, i want to test something. {{agentName}}, can you say marco?
 {{agentName}}: marco
-<user>: great. okay, now do it again
+{{user1}}: great. okay, now do it again
 Result: [RESPOND]
 
 Response options are [RESPOND], [IGNORE] and [STOP].
@@ -90,6 +81,8 @@ If {{agentName}} concludes a conversation and isn't part of the conversation any
 
 IMPORTANT: {{agentName}} is never sensitive about being annoying, so unless there are insults, it is better to respond with [RESPOND], if insults then [IGNORE].
 If {{agentName}} is conversing with a user and they have not asked to stop, it is better to respond with [RESPOND].
+
+The goal is to decide whether {{agentName}} should respond to the last message.
 
 {{recentMessages}}
 
@@ -410,14 +403,14 @@ export class MessageManager {
             const content: Content = {
                 text: fullText,
                 source: "telegram",
-                inReplyTo:
-                    "reply_to_message" in message && message.reply_to_message
-                        ? stringToUuid(
-                              message.reply_to_message.message_id.toString() +
-                                  "-" +
-                                  this.runtime.agentId
-                          )
-                        : undefined,
+                // inReplyTo:
+                //     "reply_to_message" in message && message.reply_to_message
+                //         ? stringToUuid(
+                //               message.reply_to_message.message_id.toString() +
+                //                   "-" +
+                //                   this.runtime.agentId
+                //           )
+                //         : undefined,
             };
 
             // Create memory for the message
@@ -439,6 +432,7 @@ export class MessageManager {
 
             // Decide whether to respond
             const shouldRespond = await this._shouldRespond(message, state);
+            console.log("Should respond", shouldRespond);
             if (shouldRespond) {
                 // Generate response
                 const context = composeContext({

@@ -404,11 +404,7 @@ Searchable document fragments
 
 ### getService()
 
-> **getService**\<`T`\>(`service`): `T`
-
-#### Type Parameters
-
-• **T**
+> **getService**(`service`): _typeof_ [`Service`](Service.md)
 
 #### Parameters
 
@@ -416,7 +412,7 @@ Searchable document fragments
 
 #### Returns
 
-`T`
+_typeof_ [`Service`](Service.md)
 
 #### Implementation of
 
@@ -468,7 +464,7 @@ Searchable document fragments
 
 #### Defined in
 
-[packages/core/src/runtime.ts:372](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L372)
+[packages/core/src/runtime.ts:368](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L368)
 
 ---
 
@@ -490,7 +486,7 @@ The number of recent messages to be kept in memory.
 
 #### Defined in
 
-[packages/core/src/runtime.ts:394](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L394)
+[packages/core/src/runtime.ts:390](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L390)
 
 ---
 
@@ -516,7 +512,7 @@ The action to register.
 
 #### Defined in
 
-[packages/core/src/runtime.ts:402](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L402)
+[packages/core/src/runtime.ts:398](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L398)
 
 ---
 
@@ -538,7 +534,7 @@ The evaluator to register.
 
 #### Defined in
 
-[packages/core/src/runtime.ts:411](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L411)
+[packages/core/src/runtime.ts:407](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L407)
 
 ---
 
@@ -560,7 +556,7 @@ The context provider to register.
 
 #### Defined in
 
-[packages/core/src/runtime.ts:419](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L419)
+[packages/core/src/runtime.ts:415](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L415)
 
 ---
 
@@ -592,7 +588,7 @@ The message to process.
 
 #### Defined in
 
-[packages/core/src/runtime.ts:428](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L428)
+[packages/core/src/runtime.ts:424](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L424)
 
 ---
 
@@ -628,7 +624,7 @@ The results of the evaluation.
 
 #### Defined in
 
-[packages/core/src/runtime.ts:501](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L501)
+[packages/core/src/runtime.ts:497](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L497)
 
 ---
 
@@ -660,7 +656,7 @@ An error if the participant cannot be added.
 
 #### Defined in
 
-[packages/core/src/runtime.ts:572](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L572)
+[packages/core/src/runtime.ts:567](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L567)
 
 ---
 
@@ -696,7 +692,7 @@ The user name to ensure the existence of.
 
 #### Defined in
 
-[packages/core/src/runtime.ts:588](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L588)
+[packages/core/src/runtime.ts:583](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L583)
 
 ---
 
@@ -720,7 +716,7 @@ The user name to ensure the existence of.
 
 #### Defined in
 
-[packages/core/src/runtime.ts:608](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L608)
+[packages/core/src/runtime.ts:603](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L603)
 
 ---
 
@@ -750,7 +746,7 @@ The user name to ensure the existence of.
 
 #### Defined in
 
-[packages/core/src/runtime.ts:619](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L619)
+[packages/core/src/runtime.ts:614](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L614)
 
 ---
 
@@ -781,7 +777,7 @@ An error if the room cannot be created.
 
 #### Defined in
 
-[packages/core/src/runtime.ts:655](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L655)
+[packages/core/src/runtime.ts:650](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L650)
 
 ---
 
@@ -811,7 +807,7 @@ The state of the agent.
 
 #### Defined in
 
-[packages/core/src/runtime.ts:668](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L668)
+[packages/core/src/runtime.ts:663](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L663)
 
 ---
 
@@ -833,4 +829,4 @@ The state of the agent.
 
 #### Defined in
 
-[packages/core/src/runtime.ts:1126](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L1126)
+[packages/core/src/runtime.ts:1124](https://github.com/ai16z/eliza/blob/main/packages/core/src/runtime.ts#L1124)
