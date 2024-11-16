@@ -1,4 +1,4 @@
-import { Plugin } from "@ai16z/eliza/src/types.ts";
+import { Plugin } from "@ai16z/eliza";
 
 import dcaAction from "./actions/dca.ts";
 import priceAction from "./actions/price.ts";

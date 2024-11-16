@@ -1,4 +1,4 @@
-import { Action, ActionExample, Content } from "@ai16z/eliza/src/types.ts";
+import { Action, ActionExample, Content } from "@ai16z/eliza";
 import { AttachmentBuilder } from "discord.js";
 
 const chartAction: Action = {

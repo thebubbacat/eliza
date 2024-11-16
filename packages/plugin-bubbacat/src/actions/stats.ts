@@ -1,4 +1,4 @@
-import { Action, ActionExample, Content } from "@ai16z/eliza/src/types.ts";
+import { Action, ActionExample, Content } from "@ai16z/eliza";
 import { abbreviateNumber } from "../utils/abbreviate.ts";
 import { getDexscreenerData } from "../utils/get-dexscreener-data.ts";
 const statsAction: Action = {
