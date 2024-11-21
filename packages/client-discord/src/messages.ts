@@ -335,14 +335,14 @@ export class MessageManager {
     }
 
     async handleMessage(message: DiscordMessage) {
-        if (!checkIfAllowed(message)) return;
-
         if (
             message.interaction ||
             message.author.id ===
                 this.client.user?.id /* || message.author?.bot*/
         )
             return;
+
+        if (!checkIfAllowed(message)) return;
 
         if (
             this.runtime.character.clientConfig?.discord
