@@ -27,14 +27,35 @@ export const findAddress = async (content: string): Promise<string> => {
                     throw new Error("No pairs found for token symbol");
                 }
 
+                console.log("Data:", data.pairs);
+
+                // Filter pairs where base token matches search symbol and is on Solana
+                const relevantPairs = data.pairs.filter(
+                    (pair) =>
+                        (pair.baseToken.symbol
+                            .toLowerCase()
+                            .includes(target.toLowerCase()) ||
+                            pair.baseToken.address
+                                .toLowerCase()
+                                .includes(target.toLowerCase())) &&
+                        pair.chainId === "solana"
+                );
+
+                // No relevant pairs found
+                if (relevantPairs.length === 0) {
+                    throw new Error(
+                        "No pairs found where searched token is base token"
+                    );
+                }
+
                 // First sort by market cap to get the main token contract
-                const marketCapSorted = data.pairs.sort(
+                const marketCapSorted = relevantPairs.sort(
                     (a, b) => Number(b.fdv) - Number(a.fdv)
                 );
                 const mainTokenAddress = marketCapSorted[0].baseToken.address;
 
                 // Then filter for pairs with this token and sort by volume
-                const mainTokenPairs = data.pairs.filter(
+                const mainTokenPairs = relevantPairs.filter(
                     (pair) => pair.baseToken.address === mainTokenAddress
                 );
                 const volumeSorted = mainTokenPairs.sort(
@@ -58,6 +79,8 @@ export const findAddress = async (content: string): Promise<string> => {
     if (!tokenAddress) {
         throw new Error("Could not find valid token symbol or address");
     }
+
+    console.log("Requested token address:", tokenAddress);
 
     return tokenAddress;
 };

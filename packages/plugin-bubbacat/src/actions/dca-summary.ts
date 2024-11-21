@@ -14,6 +14,7 @@ const dcaSummaryAction: Action = {
         const content = message.content.text.toLowerCase();
         const hasDcaSummaryKeywords =
             content.includes("dca") ||
+            content.includes("dcas") ||
             content.includes("summary") ||
             content.includes("table") ||
             content.includes("report");
