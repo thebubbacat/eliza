@@ -5,8 +5,8 @@ import {
     defaultCharacter,
 } from "@ai16z/eliza";
 import { bubbacatPlugin } from "@ai16z/plugin-bubbacat/src/index.ts";
-import { discordMessageHandlerTemplate } from "./templates/discordMessageHandlerTemplate";
-import { discordShouldRespondTemplate } from "./templates/discordShouldRespondTemplate";
+import { discordMessageHandlerTemplate } from "./templates/discordMessageHandlerTemplate.ts";
+import { discordShouldRespondTemplate } from "./templates/discordShouldRespondTemplate.ts";
 
 export const character: Character = {
     name: "bubbacat",
