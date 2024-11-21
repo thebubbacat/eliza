@@ -10,9 +10,7 @@ import { discordShouldRespondTemplate } from "./templates/discordShouldRespondTe
 
 export const character: Character = {
     name: "bubbacat",
-    plugins: [
-        // bubbacatPlugin
-    ],
+    plugins: [bubbacatPlugin],
     clients: [Clients.DISCORD, Clients.TELEGRAM],
     modelProvider: ModelProviderName.ANTHROPIC,
     settings: {
