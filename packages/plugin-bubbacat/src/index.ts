@@ -5,11 +5,19 @@ import priceAction from "./actions/price.ts";
 import statsAction from "./actions/stats.ts";
 import whatIfAction from "./actions/whatif.ts";
 import chartAction from "./actions/chart.ts";
+import dcaSummaryAction from "./actions/dca-summary.ts";
 
 export const bubbacatPlugin: Plugin = {
     name: "bubbacat",
     description: "Plugin for basic bubbacat actions",
-    actions: [dcaAction, priceAction, statsAction, whatIfAction, chartAction],
+    actions: [
+        dcaSummaryAction,
+        // dcaAction,
+        priceAction,
+        statsAction,
+        whatIfAction,
+        chartAction,
+    ],
     evaluators: [],
     providers: [],
 };

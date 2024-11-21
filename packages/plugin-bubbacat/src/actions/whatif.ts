@@ -1,18 +1,32 @@
 import { Action, ActionExample, Content } from "@ai16z/eliza";
 import { abbreviateNumber } from "../utils/abbreviate.ts";
 import { getDexscreenerData } from "../utils/get-dexscreener-data.ts";
+import { findAddress } from "../utils/find-address.ts";
 
 function processNumberString(str: string): number | null {
+    // Remove $ if present and trim whitespace
+    str = str.replace("$", "").trim();
+
+    // Check if it's a plain number
     if (!isNaN(parseFloat(str)) && isFinite(parseFloat(str))) {
         return parseFloat(str);
     }
 
+    // Handle K, M, B, T suffixes - try both formats (e.g. "100M" and "M100")
     const units = { K: 1e3, M: 1e6, B: 1e9, T: 1e12 };
-    const unit = str.slice(-1).toUpperCase();
-    const number = parseFloat(str.slice(0, -1));
 
-    if (!isNaN(number) && units[unit as keyof typeof units]) {
-        return number * units[unit as keyof typeof units];
+    // Try suffix at end (e.g. "100M")
+    const endUnit = str.slice(-1).toUpperCase();
+    const endNumber = parseFloat(str.slice(0, -1));
+    if (!isNaN(endNumber) && units[endUnit as keyof typeof units]) {
+        return endNumber * units[endUnit as keyof typeof units];
+    }
+
+    // Try suffix at start (e.g. "M100")
+    const startUnit = str.slice(0, 1).toUpperCase();
+    const startNumber = parseFloat(str.slice(1));
+    if (!isNaN(startNumber) && units[startUnit as keyof typeof units]) {
+        return startNumber * units[startUnit as keyof typeof units];
     }
 
     return null;
@@ -33,39 +47,29 @@ const whatIfAction: Action = {
         const hasWhatIf =
             content.includes("what if") || content.includes("whatif");
 
-        // Check for token address pattern (42-44 hex chars)
-        const hasTokenAddress = /[a-fA-F0-9]{42,44}/.test(content);
-
         // Check for token symbols (starting with $)
-        const hasTokenSymbol = /\$[A-Za-z]+/.test(content);
+        const hasTokenSymbol = /\$[A-Za-z0-9]+/.test(content);
 
-        console.log(hasWhatIf, hasTokenAddress, hasTokenSymbol);
-        return hasWhatIf && (hasTokenAddress || hasTokenSymbol);
+        // Check for market cap target (e.g. $100M or M100)
+        const hasMarketCapTarget = /\$?\d+[kmbt]?|\$?[kmbt]\d+/i.test(content);
+
+        return hasWhatIf && (hasTokenSymbol || hasMarketCapTarget);
     },
     handler: async (runtime, message, state, options, callback) => {
-        console.log("whatif handler");
         if (!message.content.text) {
             return;
         }
 
-        const content = message.content.text.toLowerCase();
-        const words = content.split(/\s+/);
+        const content = message.content.text;
 
-        // Find target value after "what if" or "whatif"
-        let targetValue = "";
-        for (let i = 0; i < words.length; i++) {
-            if (
-                words[i] === "whatif" ||
-                (words[i] === "what" && words[i + 1] === "if")
-            ) {
-                targetValue = words[i + (words[i] === "what" ? 2 : 1)] || "";
-                break;
-            }
-        }
+        // Extract target value - everything after $ until next space
+        const targetMatch = content.match(/\$([^ ]+)/);
+        const targetValue = targetMatch ? targetMatch[1] : "";
 
+        console.log("targetValue", targetValue);
         if (!targetValue) {
             const errorContent: Content = {
-                text: "Please provide either a target market cap (e.g. '10M') or a token symbol to compare with.",
+                text: "Please provide either a target market cap (e.g. '$10M' or 'M10') or a token symbol to compare with (e.g. '$pepe').",
                 action: "WHATIF_ERROR",
                 source: message.content.source,
             };
@@ -80,16 +84,20 @@ const whatIfAction: Action = {
                 tokenAddress: "418QJC9cHmUXYFDEg78bAZE765WS4PX9Kxwznx2Hpump",
             });
 
-            if (!bubbacatData || !bubbacatData.fdv || !bubbacatData.priceUsd) {
+            if (!bubbacatData.priceUsd) {
                 throw new Error("Could not fetch bubbacat data");
             }
 
             const currentPrice = Number(bubbacatData.priceUsd);
             const currentMarketCap = Number(bubbacatData.fdv);
 
-            // Check if target is a number/market cap
-            const targetMc = processNumberString(targetValue);
-            if (targetMc !== null) {
+            // Check if target is a market cap value (contains number)
+            if (/\d/.test(targetValue)) {
+                const targetMc = processNumberString(targetValue);
+                if (targetMc === null) {
+                    throw new Error("Invalid market cap value");
+                }
+
                 const multiplier = targetMc / currentMarketCap;
                 const responseContent: Content = {
                     text: `To reach $${abbreviateNumber(targetMc)} market cap:\n• ${multiplier.toFixed(2)}X from here\n• Price would be: $${(currentPrice * multiplier).toFixed(5)}`,
@@ -100,25 +108,27 @@ const whatIfAction: Action = {
                 return responseContent;
             }
 
-            // Otherwise treat as token symbol
-            const response = await fetch(
-                `https://api.dexscreener.com/latest/dex/search/?q=${targetValue}`
-            );
-            const data = await response.json();
-
-            if (!data.pairs || data.pairs.length === 0) {
-                throw new Error("No pairs found for token symbol");
+            // If target starts with $, it's a token comparison
+            const tokenAddress = await findAddress(targetValue);
+            if (!tokenAddress) {
+                throw new Error("No valid token address found");
             }
 
-            const highestVolumePair = data.pairs.sort(
-                (a: any, b: any) => Number(b.volume.h24) - Number(a.volume.h24)
-            )[0];
+            // Get comparison token data
+            const comparisonData = await getDexscreenerData({
+                type: "token",
+                tokenAddress: tokenAddress,
+            });
 
-            const targetMcap = Number(highestVolumePair.fdv);
+            if (!comparisonData || !comparisonData.fdv) {
+                throw new Error("Could not fetch comparison token data");
+            }
+
+            const targetMcap = Number(comparisonData.fdv);
             const multiplier = targetMcap / currentMarketCap;
 
             const responseContent: Content = {
-                text: `To reach ${highestVolumePair.baseToken.name}'s market cap ($${abbreviateNumber(targetMcap)}):\n• ${multiplier.toFixed(2)}X from here\n• Price would be: $${(currentPrice * multiplier).toFixed(5)}`,
+                text: `To reach ${comparisonData.baseToken.name}'s market cap ($${abbreviateNumber(targetMcap)}):\n• ${multiplier.toFixed(2)}X from here\n• Price would be: $${(currentPrice * multiplier).toFixed(5)}`,
                 action: "WHATIF_RESULT",
                 source: message.content.source,
             };
@@ -140,7 +150,7 @@ const whatIfAction: Action = {
             {
                 user: "{{user1}}",
                 content: {
-                    text: "what if bubbacat reaches 10M market cap?",
+                    text: "what if bubbacat reaches $10M market cap?",
                 },
             },
             {
@@ -155,7 +165,7 @@ const whatIfAction: Action = {
             {
                 user: "{{user1}}",
                 content: {
-                    text: "whatif pepe",
+                    text: "whatif $pepe",
                 },
             },
             {

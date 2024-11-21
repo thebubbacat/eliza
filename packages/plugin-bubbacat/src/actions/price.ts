@@ -1,6 +1,7 @@
 import { Action, ActionExample, Content } from "@ai16z/eliza";
 import { abbreviateNumber } from "../utils/abbreviate.ts";
 import { getDexscreenerData } from "../utils/get-dexscreener-data.ts";
+import { findAddress } from "../utils/find-address.ts";
 
 const priceAction: Action = {
     name: "GET_PRICE",
@@ -54,67 +55,11 @@ const priceAction: Action = {
         if (message.content.text === undefined) {
             return;
         }
-        const content = message.content.text.toLowerCase();
 
-        console.log(content);
-
-        // Extract token symbol or contract address
-        let target = "";
-        let isSymbol = false;
-
-        const hasBubbacatMention =
-            content.includes("@bubbacat") || content.includes("bubbacat");
-
-        if (hasBubbacatMention) {
-            target = "418QJC9cHmUXYFDEg78bAZE765WS4PX9Kxwznx2Hpump";
-        } else if (content.includes("$")) {
-            // Extract token symbol after $
-            const match = content.match(/\$([a-zA-Z0-9]+)/);
-            if (match) {
-                target = match[1];
-                isSymbol = true;
-            }
-        } else {
-            // Extract Solana address
-            const match = content.match(/[1-9A-HJ-NP-Za-km-z]{32,44}/);
-            if (match) {
-                target = match[0];
-            }
-        }
-
-        console.log("target", target);
-
-        if (!target) {
-            const errorContent: Content = {
-                text: "Could not find valid token symbol or contract address",
-                action: "PRICE_ERROR",
-                source: message.content.source,
-            };
-            await callback(errorContent);
-            return;
-        }
+        const content = message.content.text;
 
         try {
-            let tokenAddress = target;
-
-            if (isSymbol) {
-                // Search by symbol and get highest volume pair
-                const response = await fetch(
-                    `https://api.dexscreener.com/latest/dex/search/?q=${target}`
-                );
-                const data = await response.json();
-
-                if (!data.pairs || data.pairs.length === 0) {
-                    throw new Error("No pairs found for token symbol");
-                }
-
-                // Sort by volume and get highest volume pair
-                const sortedPairs = data.pairs.sort(
-                    (a, b) => Number(b.volume.h24) - Number(a.volume.h24)
-                );
-
-                tokenAddress = sortedPairs[0].baseToken.address;
-            }
+            const tokenAddress = await findAddress(content);
 
             const response = await getDexscreenerData({
                 type: "token",
@@ -125,7 +70,14 @@ const priceAction: Action = {
                 throw new Error("Could not fetch token price data");
             }
 
-            const messageText = `${target === "418QJC9cHmUXYFDEg78bAZE765WS4PX9Kxwznx2Hpump" ? "bubbacat" : target} token currently trading at $${Number(response.priceUsd).toFixed(5)} with market cap of $${abbreviateNumber(response.fdv ?? 0)}`;
+            const displayName =
+                tokenAddress === "418QJC9cHmUXYFDEg78bAZE765WS4PX9Kxwznx2Hpump"
+                    ? "bubbacat"
+                    : content.includes("$")
+                      ? content.match(/\$([a-zA-Z0-9]+)/)?.[1]
+                      : tokenAddress;
+
+            const messageText = `${displayName} token currently trading at $${Number(response.priceUsd).toFixed(5)} with market cap of $${abbreviateNumber(response.fdv ?? 0)}`;
 
             const responseContent: Content = {
                 text: messageText,

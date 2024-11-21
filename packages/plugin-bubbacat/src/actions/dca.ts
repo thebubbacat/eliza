@@ -8,6 +8,8 @@ import {
     ModelClass,
     State,
 } from "@ai16z/eliza";
+import { abbreviateNumber } from "../utils/abbreviate.ts";
+import { findAddress } from "../utils/find-address.ts";
 
 const dcaAction: Action = {
     name: "DCA",
@@ -21,47 +23,27 @@ const dcaAction: Action = {
 
         // Check for DCA related keywords
         const hasDcaKeywords =
-            content.includes("dca") || content.includes("active");
+            content.includes("all dcas") ||
+            content.includes("dca list") ||
+            content.includes("dcas") ||
+            content.includes("active");
 
-        // Check for token address pattern (42-44 hex chars)
-        const hasTokenAddress = /[a-fA-F0-9]{42,44}/.test(content);
+        // Check for token identifiers ($ symbol or address format)
+        const hasTokenIdentifier =
+            content.includes("$") ||
+            /[1-9A-HJ-NP-Za-km-z]{32,44}/.test(content);
 
-        // Check for token symbols (starting with $)
-        const hasTokenSymbol = /\$[A-Za-z]+/.test(content);
-
-        return hasDcaKeywords && (hasTokenAddress || hasTokenSymbol);
+        return hasDcaKeywords && hasTokenIdentifier;
     },
     handler: async (runtime, message, state, options, callback) => {
         if (!message.content.text) {
             return;
         }
 
-        const content = message.content.text.toLowerCase();
-        let queryParams = "";
-
-        // Extract token address if present
-        const addressMatch = content.match(/[a-fA-F0-9]{42,44}/);
-        if (addressMatch) {
-            queryParams = `address=${addressMatch[0]}`;
-        } else {
-            // Extract token symbol
-            const symbolMatch = content.match(/\$([A-Za-z]+)/);
-            if (symbolMatch) {
-                queryParams = `symbol=${symbolMatch[1]}`;
-            }
-        }
-
-        if (!queryParams) {
-            const errorContent: Content = {
-                text: "Please provide a valid token address or symbol (e.g. $FWOG)",
-                action: "DCA_ERROR",
-                source: message.content.source,
-            };
-            await callback(errorContent);
-            return;
-        }
-
         try {
+            const tokenAddress = await findAddress(message.content.text);
+            const queryParams = `address=${tokenAddress}`;
+
             const response = await fetch(
                 `https://callisto.so/api/dca/get-active?${queryParams}`,
                 {
@@ -73,13 +55,24 @@ const dcaAction: Action = {
                 }
             );
 
-            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-            if (!data || !Array.isArray(data)) {
+            const text = await response.text(); // Get response as text first
+            let data;
+            try {
+                data = JSON.parse(text); // Then try to parse it
+            } catch (e) {
+                console.error("Failed to parse JSON response:", text);
+                throw new Error("Invalid JSON response from API");
+            }
+
+            if (!data) {
                 throw new Error("Invalid response from Callisto API");
             }
 
-            if (data.length === 0) {
+            if (data.orders.length === 0) {
                 const responseContent: Content = {
                     text: "No active DCA positions found for this token.",
                     action: "DCA_RESULT",
@@ -89,14 +82,54 @@ const dcaAction: Action = {
                 return;
             }
 
-            const formattedPositions = data
-                .map((position: any, index: number) => {
-                    return `${index + 1}. Amount: ${position.amount} SOL | Interval: ${position.interval} minutes | Remaining: ${position.remainingAmount} SOL`;
-                })
+            const formatOrder = (order: any, index: number) => {
+                try {
+                    const frequency = Number(order.order_cycle_frequency) / 60;
+                    const conditional =
+                        order.order_min_price || order.order_max_price
+                            ? ` (conditional - min: $${order.order_min_price || "none"} max: $${order.order_max_price || "none"})`
+                            : "";
+                    return `${index + 1}. [${order.input_mint_symbol} -> ${order.output_mint_symbol} | Amount: ${abbreviateNumber(order.order_in_amount)} ${order.input_mint_symbol} ($${order.order_size.toFixed(0)}) | Frequency: Every ${frequency} ${frequency > 1 ? "minutes" : "minute"} (${Math.round(order.order_in_amount / order.order_in_amount_per_cycle)} swaps) | Progress: ${(order.progress * 100).toFixed(1)}%${conditional}](https://solscan.io/account/${order.dca_delegate})`;
+                } catch (e) {
+                    console.error("Error formatting order:", e);
+                    return `${index + 1}. [Error formatting order]`;
+                }
+            };
+
+            const formatStats = (stats: any) => {
+                return `\n\nTotal Buy Pressure: $${stats.totalBuyPower.toLocaleString()}\nTotal Sell Pressure: $${stats.totalSellPower.toLocaleString()}`;
+            };
+
+            // Sort orders by order_size in descending order
+            const sortedOrders = [...data.orders].sort(
+                (a, b) => b.order_size - a.order_size
+            );
+
+            // Filter orders above $5000 and calculate stats for hidden orders
+            const visibleOrders = sortedOrders.filter(
+                (order) => order.order_size >= 10000
+            );
+            const hiddenOrders = sortedOrders.filter(
+                (order) => order.order_size < 10000
+            );
+            const hiddenOrdersTotal = hiddenOrders.reduce(
+                (sum, order) => sum + order.order_size,
+                0
+            );
+
+            let formattedPositions = visibleOrders
+                .map(formatOrder)
+                .filter(Boolean)
                 .join("\n");
 
+            if (hiddenOrders.length > 0) {
+                formattedPositions += `\n\n+ ${hiddenOrders.length} more order(s) with total size of $${hiddenOrdersTotal.toFixed(0)} (hidden to avoid spam)`;
+            }
+
+            formattedPositions += formatStats(data.stats);
+
             const responseContent: Content = {
-                text: `Found ${data.length} active DCA position(s):\n${formattedPositions}`,
+                text: `Found ${data.orders.length} active DCA position(s):\n${formattedPositions}`,
                 action: "DCA_RESULT",
                 source: message.content.source,
             };

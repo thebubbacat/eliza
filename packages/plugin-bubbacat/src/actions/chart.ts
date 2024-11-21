@@ -1,10 +1,11 @@
 import { Action, ActionExample, Content } from "@ai16z/eliza";
 import { AttachmentBuilder } from "discord.js";
+import { findAddress } from "../utils/find-address.ts";
 
 const chartAction: Action = {
     name: "GET_CHART",
     similes: ["CHECK_CHART", "FETCH_CHART", "PRICE_CHART", "SHOW_CHART"],
-    description: "Gets the price chart for the bubbacat token",
+    description: "Gets the price chart for tokens",
     validate: async (runtime, message) => {
         if (message.content.text === undefined) {
             return false;
@@ -22,20 +23,32 @@ const chartAction: Action = {
             "ta",
         ];
 
-        // Check if message contains chart keywords and bubbacat mention
+        // Check if message contains chart keywords
         const hasChartKeyword = chartKeywords.some((keyword) =>
             content.includes(keyword)
         );
+
+        // Check for token identifiers ($ symbol or address format) or bubbacat mention
+        const hasTokenIdentifier =
+            content.includes("$") ||
+            /[1-9A-HJ-NP-Za-km-z]{32,44}/.test(content);
+
         const hasBubbacatMention =
             content.includes("@bubbacat") || content.includes("bubbacat");
 
-        return hasChartKeyword && hasBubbacatMention;
+        return hasChartKeyword && (hasTokenIdentifier || hasBubbacatMention);
     },
     handler: async (runtime, message, state, options, callback) => {
+        if (message.content.text === undefined) {
+            return;
+        }
+
         try {
+            const tokenAddress = await findAddress(message.content.text);
+
             // Add timestamp to prevent caching
             const timestamp = Date.now();
-            const chartUrl = `https://io.dexscreener.com/screenshot/chart/solana/418QJC9cHmUXYFDEg78bAZE765WS4PX9Kxwznx2Hpump.png?width=1200&height=600&t=${timestamp}`;
+            const chartUrl = `https://io.dexscreener.com/screenshot/chart/solana/${tokenAddress}.png?width=1200&height=600&t=${timestamp}`;
 
             // Fetch the chart image
             const response = await fetch(chartUrl, {
@@ -51,13 +64,20 @@ const chartAction: Action = {
 
             const imageBuffer = await response.arrayBuffer();
             const attachment = new AttachmentBuilder(Buffer.from(imageBuffer), {
-                name: "bubbacat-chart.png",
+                name: "token-chart.png",
             });
+
+            const displayName =
+                tokenAddress === "418QJC9cHmUXYFDEg78bAZE765WS4PX9Kxwznx2Hpump"
+                    ? "bubbacat"
+                    : message.content.text.includes("$")
+                      ? message.content.text.match(/\$([a-zA-Z0-9]+)/)?.[1]
+                      : tokenAddress;
 
             // Send message with attachment first
             await callback(
                 {
-                    text: "here is the chart for curious frens",
+                    text: `here is the chart for ${displayName}`,
                     action: "CHART_INFO",
                     source: message.content.source,
                 },
@@ -66,14 +86,14 @@ const chartAction: Action = {
 
             // Return full content object
             return {
-                text: "here is the chart for curious frens",
+                text: `here is the chart for ${displayName}`,
                 action: "CHART_INFO",
                 source: message.content.source,
                 attachments: [
                     {
-                        id: "bubbacat-chart",
+                        id: "token-chart",
                         url: chartUrl,
-                        title: "Bubbacat Price Chart",
+                        title: `${displayName.toUpperCase()} Price Chart`,
                         description: "Live price chart from DexScreener",
                         source: "DexScreener",
                         text: "Chart shows price action, volume, and liquidity metrics",
@@ -111,13 +131,13 @@ const chartAction: Action = {
             {
                 user: "{{user1}}",
                 content: {
-                    text: "Can I see bubbacat's price action?",
+                    text: "Can I see $WIF's price action?",
                 },
             },
             {
                 user: "{{user2}}",
                 content: {
-                    text: "I'll fetch the latest chart for bubbacat...",
+                    text: "I'll fetch the latest chart for WIF...",
                     action: "GET_CHART",
                 },
             },
