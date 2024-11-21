@@ -32,11 +32,8 @@ import yargs from "yargs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { character } from "./character.ts";
-<<<<<<< HEAD
 import { bubbacatPlugin } from "@ai16z/plugin-bubbacat/src/index.ts";
-=======
 import type { DirectClient } from "@ai16z/client-direct";
->>>>>>> upstream/main
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
