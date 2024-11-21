@@ -38,7 +38,7 @@ export class DiscordClient extends EventEmitter {
             intents: [
                 GatewayIntentBits.Guilds,
                 GatewayIntentBits.DirectMessages,
-                GatewayIntentBits.GuildVoiceStates,
+                // GatewayIntentBits.GuildVoiceStates,
                 GatewayIntentBits.MessageContent,
                 GatewayIntentBits.GuildMessages,
                 GatewayIntentBits.DirectMessageTyping,

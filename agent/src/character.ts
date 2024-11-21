@@ -227,6 +227,7 @@ export const character: Character = {
     templates: {
         discordShouldRespondTemplate: discordShouldRespondTemplate,
         discordMessageHandlerTemplate: discordMessageHandlerTemplate,
+        shouldRespondTemplate: discordShouldRespondTemplate,
     },
     // clientConfig: {
     //     telegram: {
