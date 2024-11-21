@@ -2,15 +2,7 @@
     "extends": "../../tsconfig.json",
     "compilerOptions": {
         "outDir": "dist",
-        "rootDir": "./src"
+        "rootDir": "src"
     },
-    "include": [
-        "src",
-        "../plugin-bubbacatxxx/actions/whatif.ts",
-        "../plugin-bubbacatxxx/actions/stats.ts",
-        "../plugin-bubbacatxxx/actions/price.ts",
-        "../plugin-bubbacatxxx/actions/dca.ts",
-        "../plugin-bubbacatxxx/actions/chart.ts",
-        "../plugin-bubbacatxxx/utils"
-    ]
+    "include": ["src/**/*.ts"]
 }

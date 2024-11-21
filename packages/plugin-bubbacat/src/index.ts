@@ -15,7 +15,7 @@ export const bubbacatPlugin: Plugin = {
         // dcaAction,
         priceAction,
         statsAction,
-        whatIfAction,
+        // whatIfAction,
         chartAction,
     ],
     evaluators: [],
