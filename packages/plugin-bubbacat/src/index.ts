@@ -6,6 +6,7 @@ import statsAction from "./actions/stats.ts";
 import whatIfAction from "./actions/whatif.ts";
 import chartAction from "./actions/chart.ts";
 import dcaSummaryAction from "./actions/dca-summary.ts";
+import userEvaluator from "./evaluators/user.ts";
 
 export const bubbacatPlugin: Plugin = {
     name: "bubbacat",
@@ -18,6 +19,6 @@ export const bubbacatPlugin: Plugin = {
         // whatIfAction,
         chartAction,
     ],
-    evaluators: [],
+    evaluators: [userEvaluator],
     providers: [],
 };

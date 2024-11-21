@@ -1,7 +1,5 @@
 import { Action, ActionExample, Content } from "@ai16z/eliza";
-import { abbreviateNumber } from "../utils/abbreviate.ts";
-import { getDexscreenerData } from "../utils/get-dexscreener-data.ts";
-import { findAddress } from "../utils/find-address.ts";
+import { getPrice } from "../services/get-price.ts";
 
 const priceAction: Action = {
     name: "GET_PRICE",
@@ -56,31 +54,11 @@ const priceAction: Action = {
             return;
         }
 
-        const content = message.content.text;
-
         try {
-            const tokenAddress = await findAddress(content);
-
-            const response = await getDexscreenerData({
-                type: "token",
-                tokenAddress,
-            });
-
-            if (!response || !response.priceUsd) {
-                throw new Error("Could not fetch token price data");
-            }
-
-            const displayName =
-                tokenAddress === "418QJC9cHmUXYFDEg78bAZE765WS4PX9Kxwznx2Hpump"
-                    ? "bubbacat"
-                    : content.includes("$")
-                      ? content.match(/\$([a-zA-Z0-9]+)/)?.[1]
-                      : tokenAddress;
-
-            const messageText = `${displayName} token currently trading at $${Number(response.priceUsd).toFixed(5)} with market cap of $${abbreviateNumber(response.fdv ?? 0)}`;
+            const priceData = await getPrice(runtime, message, state);
 
             const responseContent: Content = {
-                text: messageText,
+                text: priceData,
                 action: "PRICE_INFO",
                 source: message.content.source,
             };

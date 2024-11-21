@@ -21,8 +21,8 @@ import Database from "better-sqlite3";
 import fs from "fs";
 import readline from "readline";
 import yargs from "yargs";
-import { bubbacatPlugin } from "@ai16z/plugin-bubbacat/src/index.ts";
 import { character } from "./character.ts";
+import { bubbacatPlugin } from "@ai16z/plugin-bubbacat/src/index.ts";
 
 export const wait = (minTime: number = 1000, maxTime: number = 3000) => {
     const waitTime =
@@ -227,8 +227,9 @@ export async function createAgent(
         character,
         plugins: [
             bootstrapPlugin,
-            // nodePlugin,
+            nodePlugin,
             bubbacatPlugin,
+            // character.settings.secrets?.WALLET_PUBLIC_KEY ? solanaPlugin : null,
         ].filter(Boolean),
         providers: [],
         actions: [],

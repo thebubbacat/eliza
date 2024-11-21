@@ -7,6 +7,7 @@
     "dependencies": {
         "@ai16z/eliza": "workspace:*",
         "@ai16z/plugin-node": "workspace:*",
+        "@ai16z/plugin-bubbacat": "workspace:*",
         "@discordjs/opus": "github:discordjs/opus",
         "@discordjs/rest": "2.4.0",
         "@discordjs/voice": "0.17.0",
