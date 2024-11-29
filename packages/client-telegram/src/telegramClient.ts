@@ -43,7 +43,7 @@ export class TelegramClient {
 
             this.bot.on("message", async (ctx) => {
                 try {
-                    // console.log("📥 Received message:", ctx.message);
+                    elizaLogger.debug("📥 Received message:", ctx.message);
                     await this.messageManager.handleMessage(ctx);
                 } catch (error) {
                     elizaLogger.error("❌ Error handling message:", error);
@@ -59,6 +59,11 @@ export class TelegramClient {
                     "📸 Received photo message with caption:",
                     ctx.message.caption
                 );
+            });
+
+            this.bot.use((ctx, next) => {
+                elizaLogger.debug("Raw update:", ctx.update);
+                return next();
             });
 
             this.bot.on("document", (ctx) => {

@@ -248,8 +248,8 @@ export function createAgent(
         character,
         plugins: [
             bootstrapPlugin,
-            nodePlugin,
-            character.settings.secrets?.WALLET_PUBLIC_KEY ? solanaPlugin : null,
+            // nodePlugin,
+            // character.settings.secrets?.WALLET_PUBLIC_KEY ? solanaPlugin : null,
         ].filter(Boolean),
         providers: [],
         actions: [],

@@ -18,6 +18,7 @@ import { stringToUuid } from "@ai16z/eliza";
 import { generateMessageResponse, generateShouldRespond } from "@ai16z/eliza";
 import { messageCompletionFooter, shouldRespondFooter } from "@ai16z/eliza";
 import { ImageDescriptionService } from "@ai16z/plugin-node";
+import { elizaLogger } from "@ai16z/eliza";
 
 const MAX_MESSAGE_LENGTH = 4096; // Telegram's max message length
 
@@ -147,17 +148,24 @@ export class MessageManager {
     constructor(bot: Telegraf<Context>, runtime: IAgentRuntime) {
         this.bot = bot;
         this.runtime = runtime;
-        this.imageService = ImageDescriptionService.getInstance();
+        // this.imageService = ImageDescriptionService.getInstance();
     }
 
     // Process image messages and generate descriptions
     private async processImage(
         message: Message
     ): Promise<{ description: string } | null> {
-        // console.log(
-        //     "🖼️ Processing image message:",
-        //     JSON.stringify(message, null, 2)
-        // );
+        elizaLogger.debug("🖼️ Processing image message:", {
+            message: JSON.stringify(message, null, 2),
+        });
+        elizaLogger.debug("Message data:", {
+            from: message.from && {
+                id: message.from.id,
+                username: message.from.username,
+                first_name: message.from.first_name,
+                is_bot: message.from.is_bot,
+            },
+        });
 
         try {
             let imageUrl: string | null = null;
@@ -189,7 +197,7 @@ export class MessageManager {
                 return { description: fullDescription };
             }
         } catch (error) {
-            console.error("❌ Error processing image:", error);
+            elizaLogger.error("Error processing image:", error);
         }
 
         return null; // No image found
@@ -200,17 +208,45 @@ export class MessageManager {
         message: Message,
         state: State
     ): Promise<boolean> {
-        // Respond if bot is mentioned
+        // Log message data for debugging
+        elizaLogger.debug("_shouldRespond - Message data:", {
+            from: message.from && {
+                id: message.from.id,
+                username: message.from.username,
+                first_name: message.from.first_name,
+                is_bot: message.from.is_bot,
+            },
+            text: "text" in message ? message.text : null,
+            chat_type: message.chat.type,
+            has_photo: "photo" in message,
+            has_document: "document" in message,
+        });
 
+        // Respond to messages from allowed bots
+        if (
+            "from" in message &&
+            message.from?.is_bot &&
+            ["safeguard", "bubbacat_data_bot"].includes(message.from.username)
+        ) {
+            elizaLogger.debug(
+                "Bot message from allowed bot:",
+                message.from.username
+            );
+            return true;
+        }
+
+        // Respond if bot is mentioned
         if (
             "text" in message &&
             message.text?.includes(`@${this.bot.botInfo?.username}`)
         ) {
+            elizaLogger.debug("Bot was mentioned in message");
             return true;
         }
 
         // Respond to private chats
         if (message.chat.type === "private") {
+            elizaLogger.debug("Private chat message - ignoring");
             return false;
         }
 
@@ -220,11 +256,17 @@ export class MessageManager {
             ("document" in message &&
                 message.document?.mime_type?.startsWith("image/"))
         ) {
+            elizaLogger.debug("Image message - ignoring");
             return false;
         }
 
         // Use AI to decide for text or captions
         if ("text" in message || ("caption" in message && message.caption)) {
+            elizaLogger.debug("Processing text/caption message:", {
+                text: "text" in message ? message.text : null,
+                caption: "caption" in message ? message.caption : null,
+            });
+
             const shouldRespondContext = composeContext({
                 state,
                 template:
@@ -240,9 +282,11 @@ export class MessageManager {
                 modelClass: ModelClass.SMALL,
             });
 
+            elizaLogger.debug("AI response decision:", response);
             return response === "RESPOND";
         }
 
+        elizaLogger.debug("No matching criteria - defaulting to false");
         return false; // No criteria met
     }
 
@@ -308,7 +352,7 @@ export class MessageManager {
         });
 
         if (!response) {
-            console.error("❌ No response from generateMessageResponse");
+            elizaLogger.error("No response from generateMessageResponse");
             return null;
         }
         await this.runtime.databaseAdapter.log({
@@ -324,24 +368,45 @@ export class MessageManager {
     // Main handler for incoming messages
     public async handleMessage(ctx: Context): Promise<void> {
         if (!ctx.message || !ctx.from) {
+            elizaLogger.debug("Telegram: Missing message or sender info");
             return; // Exit if no message or sender info
         }
 
         const message = ctx.message;
 
+        elizaLogger.debug("Telegram: Processing message", {
+            from: ctx.from.username,
+            isBot: ctx.from.is_bot,
+            text: "text" in message ? message.text : "",
+            chatId: ctx.chat?.id,
+            messageId: message.message_id,
+            date: message.date,
+            full_message: JSON.stringify(message, null, 2),
+        });
+
+        // List of allowed bot usernames
+        const ALLOWED_BOT_USERNAMES = ["safeguard", "bubbacat_data_bot"];
+
+        // Only allow messages from non-bots or allowed bots
         if (
-            this.runtime.character.clientConfig?.telegram
-                ?.shouldIgnoreBotMessages &&
-            ctx.from.is_bot
+            ctx.from.is_bot &&
+            !ALLOWED_BOT_USERNAMES.includes(ctx.from.username)
         ) {
+            elizaLogger.debug(
+                "Telegram: Ignoring bot message from",
+                ctx.from.username,
+                "- not in allowed list:",
+                ALLOWED_BOT_USERNAMES
+            );
             return;
         }
+
         if (
             this.runtime.character.clientConfig?.telegram
                 ?.shouldIgnoreDirectMessages &&
             ctx.chat?.type === "private"
         ) {
-            console.log(
+            elizaLogger.debug(
                 "Telegram: Ignoring direct message from",
                 ctx.from.username
             );
@@ -405,6 +470,7 @@ export class MessageManager {
                 : messageText;
 
             if (!fullText) {
+                elizaLogger.debug("Telegram: No text content found in message");
                 return; // Skip if no content
             }
 
@@ -440,6 +506,7 @@ export class MessageManager {
 
             // Decide whether to respond
             const shouldRespond = await this._shouldRespond(message, state);
+            elizaLogger.debug("Telegram: Should respond?", shouldRespond);
 
             if (shouldRespond) {
                 // Generate response
@@ -459,7 +526,12 @@ export class MessageManager {
                     context
                 );
 
-                if (!responseContent || !responseContent.text) return;
+                if (!responseContent || !responseContent.text) {
+                    elizaLogger.debug(
+                        "Telegram: No response content generated"
+                    );
+                    return;
+                }
 
                 // Send response in chunks
                 const callback: HandlerCallback = async (content: Content) => {
@@ -524,8 +596,8 @@ export class MessageManager {
 
             await this.runtime.evaluate(memory, state, shouldRespond);
         } catch (error) {
-            console.error("❌ Error handling message:", error);
-            console.error("Error sending message:", error);
+            elizaLogger.error("Error handling message:", error);
+            elizaLogger.error("Error stack trace:", error.stack);
         }
     }
 }
