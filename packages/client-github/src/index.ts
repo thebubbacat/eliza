@@ -13,7 +13,7 @@ import {
     knowledge,
     stringToUuid,
 } from "@ai16z/eliza";
-import { validateGithubConfig } from "./enviroment";
+import { validateGithubConfig } from "./environment";
 
 export interface GitHubConfig {
     owner: string;
@@ -191,7 +191,7 @@ export const GitHubClientInterface: Client = {
 
         return client;
     },
-    stop: async (runtime: IAgentRuntime) => {
+    stop: async (_runtime: IAgentRuntime) => {
         elizaLogger.log("GitHubClientInterface stop");
     },
 };

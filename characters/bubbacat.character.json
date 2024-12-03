@@ -212,15 +212,5 @@
             "eternal smol posts",
             "boba adventures"
         ]
-    },
-    "clientConfig": {
-        "telegram": {
-            "shouldIgnoreDirectMessages": true,
-            "shouldIgnoreBotMessages": true
-        },
-        "discord": {
-            "shouldIgnoreBotMessages": true,
-            "shouldIgnoreDirectMessages": true
-        }
     }
 }

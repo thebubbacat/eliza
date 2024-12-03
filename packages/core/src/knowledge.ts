@@ -1,24 +1,43 @@
-import { UUID } from "crypto";
-
 import { AgentRuntime } from "./runtime.ts";
-import { embed } from "./embedding.ts";
-import { Content, ModelClass, type Memory } from "./types.ts";
+import { embed, getEmbeddingZeroVector } from "./embedding.ts";
+import { KnowledgeItem, UUID, type Memory } from "./types.ts";
 import { stringToUuid } from "./uuid.ts";
-import { embeddingZeroVector } from "./memory.ts";
 import { splitChunks } from "./generation.ts";
-import { models } from "./models.ts";
 import elizaLogger from "./logger.ts";
 
-async function get(runtime: AgentRuntime, message: Memory): Promise<string[]> {
+async function get(
+    runtime: AgentRuntime,
+    message: Memory
+): Promise<KnowledgeItem[]> {
+    // Add validation for message
+    if (!message?.content?.text) {
+        elizaLogger.warn("Invalid message for knowledge query:", {
+            message,
+            content: message?.content,
+            text: message?.content?.text,
+        });
+        return [];
+    }
+
     const processed = preprocess(message.content.text);
-    elizaLogger.log(`Querying knowledge for: ${processed}`);
+    elizaLogger.debug("Knowledge query:", {
+        original: message.content.text,
+        processed,
+        length: processed?.length,
+    });
+
+    // Validate processed text
+    if (!processed || processed.trim().length === 0) {
+        elizaLogger.warn("Empty processed text for knowledge query");
+        return [];
+    }
+
     const embedding = await embed(runtime, processed);
     const fragments = await runtime.knowledgeManager.searchMemoriesByEmbedding(
         embedding,
         {
             roomId: message.agentId,
-            agentId: message.agentId,
-            count: 3,
+            count: 5,
             match_threshold: 0.1,
         }
     );
@@ -27,7 +46,7 @@ async function get(runtime: AgentRuntime, message: Memory): Promise<string[]> {
         ...new Set(
             fragments.map((memory) => {
                 elizaLogger.log(
-                    `Matched fragment: ${memory.content.text} with similarity: ${message.similarity}`
+                    `Matched fragment: ${memory.content.text} with similarity: ${memory.similarity}`
                 );
                 return memory.content.source;
             })
@@ -40,35 +59,29 @@ async function get(runtime: AgentRuntime, message: Memory): Promise<string[]> {
         )
     );
 
-    const knowledge = knowledgeDocuments
+    return knowledgeDocuments
         .filter((memory) => memory !== null)
-        .map((memory) => memory.content.text);
-    return knowledge;
+        .map((memory) => ({ id: memory.id, content: memory.content }));
 }
 
-export type KnowledgeItem = {
-    id: UUID;
-    content: Content;
-};
-
-async function set(runtime: AgentRuntime, item: KnowledgeItem) {
+async function set(
+    runtime: AgentRuntime,
+    item: KnowledgeItem,
+    chunkSize: number = 512,
+    bleed: number = 20
+) {
     await runtime.documentsManager.createMemory({
-        embedding: embeddingZeroVector,
         id: item.id,
         agentId: runtime.agentId,
         roomId: runtime.agentId,
         userId: runtime.agentId,
         createdAt: Date.now(),
         content: item.content,
+        embedding: getEmbeddingZeroVector(),
     });
 
     const preprocessed = preprocess(item.content.text);
-    const fragments = await splitChunks(
-        preprocessed,
-        10,
-        models[runtime.character.modelProvider].model?.[ModelClass.EMBEDDING],
-        5
-    );
+    const fragments = await splitChunks(preprocessed, chunkSize, bleed);
 
     for (const fragment of fragments) {
         const embedding = await embed(runtime, fragment);
@@ -90,6 +103,16 @@ async function set(runtime: AgentRuntime, item: KnowledgeItem) {
 }
 
 export function preprocess(content: string): string {
+    elizaLogger.debug("Preprocessing text:", {
+        input: content,
+        length: content?.length,
+    });
+
+    if (!content || typeof content !== "string") {
+        elizaLogger.warn("Invalid input for preprocessing");
+        return "";
+    }
+
     return (
         content
             // Remove code blocks and their content
@@ -102,6 +125,10 @@ export function preprocess(content: string): string {
             .replace(/!\[(.*?)\]\(.*?\)/g, "$1")
             // Remove links but keep text
             .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+            // Simplify URLs: remove protocol and simplify to domain+path
+            .replace(/(https?:\/\/)?(www\.)?([^\s]+\.[^\s]+)/g, "$3")
+            // Remove Discord mentions specifically
+            .replace(/<@[!&]?\d+>/g, "")
             // Remove HTML tags
             .replace(/<[^>]*>/g, "")
             // Remove horizontal rules
@@ -113,10 +140,8 @@ export function preprocess(content: string): string {
             .replace(/\s+/g, " ")
             // Remove multiple newlines
             .replace(/\n{3,}/g, "\n\n")
-            // strip all special characters
-            .replace(/[^a-zA-Z0-9\s]/g, "")
-            // Remove Discord mentions
-            .replace(/<@!?\d+>/g, "")
+            // Remove special characters except those common in URLs
+            .replace(/[^a-zA-Z0-9\s\-_./:?=&]/g, "")
             .trim()
             .toLowerCase()
     );
@@ -125,5 +150,5 @@ export function preprocess(content: string): string {
 export default {
     get,
     set,
-    process,
+    preprocess,
 };
