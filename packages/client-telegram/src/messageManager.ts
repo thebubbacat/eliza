@@ -373,11 +373,11 @@ export class MessageManager {
         }
 
         // Check if private chat or not in allowed groups
-        const BUBBACAT_GROUP_ID = -1002325966824; // Main group ID
+        // const BUBBACAT_GROUP_ID = -1002325966824; // Main group ID
         const BUBBACAT_TEST_GROUP_ID = -4585526059; // Test group ID
 
         if (
-            ctx.chat?.id !== BUBBACAT_GROUP_ID &&
+            // ctx.chat?.id !== BUBBACAT_GROUP_ID &&
             ctx.chat?.id !== BUBBACAT_TEST_GROUP_ID
         ) {
             await ctx.reply(

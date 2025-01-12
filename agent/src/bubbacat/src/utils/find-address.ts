@@ -16,6 +16,10 @@ export const findAddress = async (content: string): Promise<string> => {
             // Handle special case for WIF token
             if (target.toLowerCase() === "wif") {
                 tokenAddress = "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm";
+            } else if (target.toLowerCase() === "ai16z") {
+                // todo: fix this properly
+
+                tokenAddress = "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC"; // temporary fix
             } else {
                 // Search by symbol and get highest market cap pair
                 const response = await fetch(

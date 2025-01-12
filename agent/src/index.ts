@@ -377,7 +377,7 @@ export function createAgent(
             getSecret(character, "CONFLUX_CORE_PRIVATE_KEY")
                 ? confluxPlugin
                 : null,
-            nodePlugin,
+            // nodePlugin,
             getSecret(character, "SOLANA_PUBLIC_KEY") ||
             (getSecret(character, "WALLET_PUBLIC_KEY") &&
                 !getSecret(character, "WALLET_PUBLIC_KEY")?.startsWith("0x"))

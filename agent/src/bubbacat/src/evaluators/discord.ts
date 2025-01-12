@@ -37,8 +37,14 @@ function checkIfAllowed(message: Message) {
         const NIRAI_CHANNEL = "1305103636556415040";
         const AI16Z_CHANNEL = "1285105813349859421";
         const AI16Z_VOICE_CHANNEL = "1253563209462448242";
+        const BUBBACAT_CHANNEL = "1313061235780096030";
 
-        const allowedChannels = [NIRAI_CHANNEL, AI16Z_CHANNEL];
+        const allowedChannels = [
+            NIRAI_CHANNEL,
+            AI16Z_CHANNEL,
+            BUBBACAT_CHANNEL,
+        ];
+
         console.log("Allowed channels:", allowedChannels);
         console.log("Current channel:", channelId);
 
