@@ -1,0 +1,9 @@
+*.ts
+!index.ts
+!character.ts
+!bubbacat/**/*.ts
+.env
+*.env
+.env*
+/data
+/generatedImages
