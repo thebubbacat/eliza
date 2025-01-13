@@ -1,7 +1,7 @@
 *.ts
-!index.ts
-!character.ts
+!src/**/*.ts
 !bubbacat/**/*.ts
+
 .env
 *.env
 .env*
